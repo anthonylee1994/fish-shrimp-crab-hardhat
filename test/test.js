@@ -18,10 +18,20 @@ describe("BetGame", function () {
     );
 
     (
-      await contract.bet(0, {
-        // Bet FISH
-        value: ethers.utils.parseEther("2"),
-      })
+      await contract.bet(
+        [
+          ethers.utils.parseEther("1"),
+          ethers.utils.parseEther("2"),
+          ethers.utils.parseEther("3"),
+          0,
+          0,
+          0,
+        ],
+        {
+          // Bet FISH
+          value: ethers.utils.parseEther("2"),
+        }
+      )
     ).wait();
 
     expect(await contract.getLiquidity()).to.equal(

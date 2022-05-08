@@ -59,9 +59,19 @@ contract BetGame is Ownable {
         return amount < poolLiquidityAmount / 4;
     }
 
-    function bet(BetType betType) public payable returns (DrawResult memory) {
+    function bet(uint[] memory amounts) public payable returns (bool) {
+        uint totalAmount = 0;
+
+        for (uint i = 0; i < amounts.length; i++) {
+            totalAmount += amounts[i];
+        }
+
         require(msg.value > 0, "Bet amount must be greater than 0");
         require(canBet(msg.value), "Pool liquidity not enough");
+        require(
+            totalAmount == msg.value,
+            "Bet amounts must sum to the bet amount"
+        );
 
         Player memory player = Player(payable(msg.sender), msg.value);
         poolLiquidityAmount += player.amount;
@@ -69,19 +79,26 @@ contract BetGame is Ownable {
         DrawResult memory drawResult = open();
         drawResults[block.number] = drawResult;
 
-        uint multiplier = 1;
+        uint winAmount = 0;
 
-        if (drawResult.firstDigit == uint(betType)) multiplier += 1;
-        if (drawResult.secondDigit == uint(betType)) multiplier += 1;
-        if (drawResult.thirdDigit == uint(betType)) multiplier += 1;
+        for (uint i = 0; i < 6; i++) {
+            uint multiplier = 1;
+            if (drawResult.firstDigit == i) multiplier += 1; // 中第一粒
+            if (drawResult.secondDigit == i) multiplier += 1; // 中第二粒
+            if (drawResult.thirdDigit == i) multiplier += 1; // 中第三粒
 
-        if (multiplier > 1) {
-            uint winAmount = player.amount * multiplier;
+            if (amounts[i] > 0 && multiplier > 1) {
+                winAmount += amounts[i] * multiplier;
+            }
+        }
+
+        // 派彩
+        if (winAmount > 0) {
             player.addr.transfer(winAmount);
             poolLiquidityAmount -= winAmount;
         }
 
-        return drawResult;
+        return true;
     }
 
     function getLastDrawResult() public view returns (DrawResult memory) {

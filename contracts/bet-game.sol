@@ -21,7 +21,16 @@ contract BetGame is Ownable {
         uint amount;
     }
 
+    struct DrawResult {
+        uint openTime;
+        uint firstDigit;
+        uint secondDigit;
+        uint thirdDigit;
+    }
+
     uint poolLiquidityAmount; // 莊家彩池金額
+
+    mapping(uint => DrawResult) public drawResults;
 
     constructor() {
         transferOwnership(0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199); // 莊家 Wallet 取得擁有權
@@ -50,28 +59,21 @@ contract BetGame is Ownable {
         return amount < poolLiquidityAmount / 4;
     }
 
-    function bet(BetType betType)
-        public
-        payable
-        returns (
-            uint,
-            uint,
-            uint
-        )
-    {
+    function bet(BetType betType) public payable returns (DrawResult memory) {
         require(msg.value > 0, "Bet amount must be greater than 0");
         require(canBet(msg.value), "Pool liquidity not enough");
 
         Player memory player = Player(payable(msg.sender), msg.value);
         poolLiquidityAmount += player.amount;
 
-        (uint firstDigit, uint secondDigit, uint thirdDigit) = open();
+        DrawResult memory drawResult = open();
+        drawResults[block.number] = drawResult;
 
         uint multiplier = 1;
 
-        if (firstDigit == uint(betType)) multiplier += 1;
-        if (secondDigit == uint(betType)) multiplier += 1;
-        if (thirdDigit == uint(betType)) multiplier += 1;
+        if (drawResult.firstDigit == uint(betType)) multiplier += 1;
+        if (drawResult.secondDigit == uint(betType)) multiplier += 1;
+        if (drawResult.thirdDigit == uint(betType)) multiplier += 1;
 
         if (multiplier > 1) {
             uint winAmount = player.amount * multiplier;
@@ -79,7 +81,11 @@ contract BetGame is Ownable {
             poolLiquidityAmount -= winAmount;
         }
 
-        return (firstDigit, secondDigit, thirdDigit);
+        return drawResult;
+    }
+
+    function getLastDrawResult() public view returns (DrawResult memory) {
+        return drawResults[block.number];
     }
 
     function randomOf(uint length) private view returns (uint) {
@@ -89,20 +95,19 @@ contract BetGame is Ownable {
             ) % length;
     }
 
-    function open()
-        private
-        view
-        returns (
-            uint,
-            uint,
-            uint
-        )
-    {
+    function open() private view returns (DrawResult memory) {
         uint random = randomOf(6 * 6 * 6);
         uint firstDigit = random % 6;
         uint secondDigit = (random / 6) % 6;
         uint thirdDigit = (random / 36) % 6;
 
-        return (firstDigit, secondDigit, thirdDigit);
+        DrawResult memory drawResult = DrawResult(
+            block.timestamp,
+            firstDigit,
+            secondDigit,
+            thirdDigit
+        );
+
+        return drawResult;
     }
 }

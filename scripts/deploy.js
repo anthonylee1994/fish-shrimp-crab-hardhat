@@ -6,6 +6,8 @@ async function main() {
   await betGame.deployed();
 
   console.log("BetGame deployed to:", betGame.address);
+  const [owner] = await ethers.getSigners();
+  console.log("owner", owner);
 }
 
 main()

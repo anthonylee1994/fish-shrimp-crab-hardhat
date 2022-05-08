@@ -1,76 +1,108 @@
-pragma solidity ^0.8.6;
+// SPDX-License-Identifier: MIT
 
-contract BetGame {
-    //GM
-    address public owner;
-    bool isFinshed;
+pragma solidity ^0.8.0;
 
-    //紀錄玩家用的 struct
+import "hardhat/console.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract BetGame is Ownable {
+    enum BetType {
+        FISH, // 魚
+        SHRIMP, // 蝦
+        GOURD, // 葫蘆
+        COIN, // 金錢
+        CRAB, // 蟹
+        ROOSTER // 雞
+    }
+
+    //紀錄閒家用的 struct
     struct Player {
         address payable addr;
         uint amount;
     }
 
-    //存下大的玩家
-    Player[] big;
-    //存下小的玩家
-    Player[] small;
-
-    //下大的總金額
-    uint totalBig;
-    //下小的總金額
-    uint totalSmall;
-    uint nowtime;
+    uint poolLiquidityAmount; // 莊家彩池金額
 
     constructor() {
-        owner = msg.sender;
-        totalSmall = 0;
-        totalBig = 0;
-        isFinshed = false;
-        nowtime = block.timestamp;
+        transferOwnership(0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199); // 莊家 Wallet 取得擁有權
+        poolLiquidityAmount = 0;
     }
 
-    function bet(bool flag) public payable returns (bool) {
-        require(msg.value > 0);
-        Player memory p = Player(payable(msg.sender), msg.value);
-        //透過bool true 表示下大
-        if (flag) {
-            big.push(p);
-            totalBig += p.amount;
-        } else {
-            small.push(p);
-            totalSmall += p.amount;
-        }
+    function addLiquidity() public payable returns (bool) {
+        poolLiquidityAmount += msg.value;
         return true;
     }
 
-    function open() public payable returns (bool) {
-        //開獎至少要遊戲開始後60秒
-        // require(block.timestamp > nowtime + 60);
-        require(!isFinshed);
+    function takeLiquidity() public payable returns (bool) {
+        require(msg.sender == owner(), "Only owner can take liquidity");
+        require(poolLiquidityAmount >= msg.value, "Not enough liquidity");
+        address payable addr = payable(owner());
+        addr.transfer(msg.value);
+        poolLiquidityAmount -= msg.value;
+        return true;
+    }
 
-        //創造出 0-9的變數 0-4為小 5-9為大
-        uint points = uint(
-            keccak256(abi.encode(msg.sender, block.timestamp, block.number))
-        ) % 9;
+    function getLiquidity() public view returns (uint) {
+        return poolLiquidityAmount;
+    }
 
-        uint i = 0;
-        Player memory p;
+    function canBet(uint amount) public view returns (bool) {
+        return amount < poolLiquidityAmount / 4;
+    }
 
-        if (points >= 5) {
-            for (i = 0; i < big.length; i++) {
-                p = big[i];
-                //給贏家 下注本金+照比例分配獎金
-                p.addr.transfer(p.amount + (totalSmall * p.amount) / totalBig);
-            }
-        } else {
-            for (i = 0; i < small.length; i++) {
-                p = small[i];
-                p.addr.transfer(p.amount + (totalBig * p.amount) / totalSmall);
-            }
+    function bet(BetType betType)
+        public
+        payable
+        returns (
+            uint,
+            uint,
+            uint
+        )
+    {
+        require(msg.value > 0, "Bet amount must be greater than 0");
+        require(canBet(msg.value), "Pool liquidity not enough");
+
+        Player memory player = Player(payable(msg.sender), msg.value);
+        poolLiquidityAmount += player.amount;
+
+        (uint firstDigit, uint secondDigit, uint thirdDigit) = open();
+
+        uint multiplier = 1;
+
+        if (firstDigit == uint(betType)) multiplier += 1;
+        if (secondDigit == uint(betType)) multiplier += 1;
+        if (thirdDigit == uint(betType)) multiplier += 1;
+
+        if (multiplier > 1) {
+            uint winAmount = player.amount * multiplier;
+            player.addr.transfer(winAmount);
+            poolLiquidityAmount -= winAmount;
         }
 
-        isFinshed = true;
-        return true;
+        return (firstDigit, secondDigit, thirdDigit);
+    }
+
+    function randomOf(uint length) private view returns (uint) {
+        return
+            uint(
+                keccak256(abi.encode(msg.sender, block.timestamp, block.number))
+            ) % length;
+    }
+
+    function open()
+        private
+        view
+        returns (
+            uint,
+            uint,
+            uint
+        )
+    {
+        uint random = randomOf(6 * 6 * 6);
+        uint firstDigit = random % 6;
+        uint secondDigit = (random / 6) % 6;
+        uint thirdDigit = (random / 36) % 6;
+
+        return (firstDigit, secondDigit, thirdDigit);
     }
 }

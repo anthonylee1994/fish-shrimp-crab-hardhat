@@ -2,11 +2,11 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/anthony/Documents/Development/fish-shrimp-crab-hardhat/contracts/bet-game.sol": {
-      "lastModificationDate": 1651818769894,
-      "contentHash": "f9ab12a6f9710ec431bfb029496f2407",
+      "lastModificationDate": 1652004170060,
+      "contentHash": "173f3a22ebb5e7daae5ff64c9bfa7b21",
       "sourceName": "contracts/bet-game.sol",
       "solcConfig": {
-        "version": "0.8.6",
+        "version": "0.8.0",
         "settings": {
           "optimizer": {
             "enabled": false,
@@ -28,9 +28,12 @@
           }
         }
       },
-      "imports": [],
+      "imports": [
+        "hardhat/console.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
       "versionPragmas": [
-        "^0.8.6"
+        "^0.8.0"
       ],
       "artifacts": [
         "BetGame"
@@ -41,7 +44,7 @@
       "contentHash": "cc4777addd464ea56fa35b1c45df0591",
       "sourceName": "hardhat/console.sol",
       "solcConfig": {
-        "version": "0.8.6",
+        "version": "0.8.0",
         "settings": {
           "optimizer": {
             "enabled": false,
@@ -69,6 +72,78 @@
       ],
       "artifacts": [
         "console"
+      ]
+    },
+    "/Users/anthony/Documents/Development/fish-shrimp-crab-hardhat/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
+      "lastModificationDate": 1651843360955,
+      "contentHash": "8398972af73b4e9e5ff3b31cad86234f",
+      "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "Ownable"
+      ]
+    },
+    "/Users/anthony/Documents/Development/fish-shrimp-crab-hardhat/node_modules/@openzeppelin/contracts/utils/Context.sol": {
+      "lastModificationDate": 1651843360838,
+      "contentHash": "5f2c5c4b6af2dd4551027144797bc8be",
+      "sourceName": "@openzeppelin/contracts/utils/Context.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "Context"
       ]
     }
   }

@@ -2,31 +2,30 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("BetGame", function () {
-  it("Buying big", async function () {
+  it("test", async () => {
     const BetGame = await ethers.getContractFactory("BetGame");
     const betGame = await BetGame.deploy();
     const contract = await betGame.deployed();
 
-    const tx = await contract.callStatic.bet(true, {
-      value: ethers.utils.parseEther("0.1"),
-    });
+    (
+      await contract.addLiquidity({
+        value: ethers.utils.parseEther("10"),
+      })
+    ).wait();
 
-    expect(tx).to.equal(true);
-  });
+    expect(await contract.getLiquidity()).to.equal(
+      ethers.utils.parseEther("10")
+    );
 
-  it("open", async function () {
-    const BetGame = await ethers.getContractFactory("BetGame");
-    const betGame = await BetGame.deploy();
-    const contract = await betGame.deployed();
+    (
+      await contract.bet(0, {
+        // Bet FISH
+        value: ethers.utils.parseEther("2"),
+      })
+    ).wait();
 
-    const tx = await contract.bet(true, {
-      value: ethers.utils.parseEther("0.1"),
-    });
-
-    await tx.wait();
-
-    const value = await contract.callStatic.open();
-
-    expect(value).to.equal(true);
+    expect(await contract.getLiquidity()).to.equal(
+      ethers.utils.parseEther("0")
+    );
   });
 });

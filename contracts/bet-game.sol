@@ -33,7 +33,7 @@ contract BetGame is Ownable {
     mapping(uint => DrawResult) public drawResults;
 
     constructor() {
-        transferOwnership(0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199); // 莊家 Wallet 取得擁有權
+        transferOwnership(0xdD2FD4581271e230360230F9337D5c0430Bf44C0); // 莊家 Wallet 取得擁有權
         poolLiquidityAmount = 0;
     }
 
@@ -44,10 +44,9 @@ contract BetGame is Ownable {
 
     function takeLiquidity() public payable returns (bool) {
         require(msg.sender == owner(), "Only owner can take liquidity");
-        require(poolLiquidityAmount >= msg.value, "Not enough liquidity");
         address payable addr = payable(owner());
-        addr.transfer(msg.value);
-        poolLiquidityAmount -= msg.value;
+        addr.transfer(poolLiquidityAmount);
+        poolLiquidityAmount = 0;
         return true;
     }
 

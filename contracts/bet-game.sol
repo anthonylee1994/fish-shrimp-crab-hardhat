@@ -107,7 +107,13 @@ contract BetGame is Ownable {
     function randomOf(uint length) private view returns (uint) {
         return
             uint(
-                keccak256(abi.encode(msg.sender, block.timestamp, block.number))
+                keccak256(
+                    abi.encodePacked(
+                        block.timestamp,
+                        block.difficulty,
+                        msg.sender
+                    )
+                )
             ) % length;
     }
 
